@@ -1,26 +1,43 @@
 ﻿<script setup>
-import { useOrdersStore } from '@/stores/orders'
-const ordersStore = useOrdersStore()
+import { ref, onMounted } from 'vue'
+
+const orders = ref([])
+const loading = ref(true)
+const error = ref('')
+
+onMounted(async () => {
+  try {
+    const res = await fetch('/api/orders')
+    if (!res.ok) throw new Error(`Сервер відповів помилкою ${res.status}`)
+    orders.value = await res.json()
+  } catch (e) {
+    error.value = 'Не вдалося завантажити замовлення. Чи запущений бекенд?'
+  } finally {
+    loading.value = false
+  }
+})
 </script>
 
 <template>
-  <h1 class="mb-4">Мої замовлення</h1>
+  <h1 class="mb-4">Замовлення</h1>
 
-  <div v-if="ordersStore.orders.length === 0" class="alert alert-info">
-    Замовлень поки немає. <RouterLink to="/">Перейти до товарів</RouterLink>
-  </div>
+  <div v-if="loading" class="spinner-border text-primary"></div>
 
-  <div v-for="order in ordersStore.orders" :key="order.id" class="card mb-3">
-    <div class="card-header d-flex justify-content-between">
-      <span>Замовлення №{{ order.id }}</span>
-      <span class="text-muted">{{ order.date }}</span>
-    </div>
-    <ul class="list-group list-group-flush">
-      <li v-for="item in order.items" :key="item.id" class="list-group-item d-flex justify-content-between">
-        <span>{{ item.title }} × {{ item.qty }}</span>
-        <span>{{ item.price * item.qty }} ₴</span>
-      </li>
-    </ul>
-    <div class="card-footer text-end fw-bold">Разом: {{ order.total }} ₴</div>
-  </div>
+  <div v-else-if="error" class="alert alert-danger">{{ error }}</div>
+
+  <div v-else-if="orders.length === 0" class="alert alert-info">Замовлень поки немає.</div>
+
+  <table v-else class="table">
+    <thead>
+      <tr><th>№</th><th>Покупець</th><th>Товар</th><th>Сума</th></tr>
+    </thead>
+    <tbody>
+      <tr v-for="order in orders" :key="order.id">
+        <td>{{ order.id }}</td>
+        <td>{{ order.user_name }}</td>
+        <td>{{ order.product }}</td>
+        <td>{{ order.amount }} ₴</td>
+      </tr>
+    </tbody>
+  </table>
 </template>

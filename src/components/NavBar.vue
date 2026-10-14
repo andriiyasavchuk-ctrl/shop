@@ -13,6 +13,7 @@ const cart = useCartStore()
           Кошик
           <span v-if="cart.totalCount" class="badge bg-primary">{{ cart.totalCount }}</span>
         </RouterLink>
+        <RouterLink class="nav-link" to="/users">Користувачі</RouterLink>
         <RouterLink class="nav-link" to="/orders">Замовлення</RouterLink>
       </div>
     </div>
